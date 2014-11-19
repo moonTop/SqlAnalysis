@@ -15,6 +15,9 @@ public class HeaderTest {
 		Assert.assertNotNull(header.type);
 		Assert.assertNull(header.schema);
 		Assert.assertNotNull(header.owner);
+		Assert.assertEquals(HeaderType.SCHEMA, header.type);
+		Assert.assertEquals("i2b2demodata",header.name);
+		Assert.assertEquals("weymouth",header.owner);
 	}
 
 }
