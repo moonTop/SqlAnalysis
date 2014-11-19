@@ -20,6 +20,10 @@ public class Header {
 		schema = nullIfEmpty(parts[2].split(":")[1].trim());
 		owner = nullIfEmpty(parts[3].split(":")[1].trim());
 	}
+	
+	public String getSchemaWithName() {
+		return schema + "." + name;
+	}
 
 	private String nullIfEmpty(String s) {
 		if (s.isEmpty()) return null;
