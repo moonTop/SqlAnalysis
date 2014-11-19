@@ -7,9 +7,12 @@ public class TableColumn {
 	final String remainder;
 	
 	public TableColumn(String name, String type, String remainder) {
-		this.name = name;
-		this.type = type;
-		this.remainder = remainder;
+		this.name = name.trim();
+		this.type = type.trim();
+		this.remainder = remainder.trim();
 	}
 
+	public String toString() {
+		return name + ": " + type + " (" + remainder + ")"; 
+	}
 }

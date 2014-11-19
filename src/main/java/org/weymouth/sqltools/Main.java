@@ -37,8 +37,10 @@ public class Main {
 		for (String schema: commonSchemas){
 			Set<Header> commonTables = intersectionHeadersByName(schema,HeaderType.TABLE); 
 			for (Header h: commonTables) {
-				System.out.println("  " + h.getSchemaWithName());
-				if (!tableStructureCongruent(h)) {
+				if (tableStructureCongruent(h)) {
+					System.out.println("  " + h.getSchemaWithName() + " are identical");
+				} else {
+					System.out.println("  " + h.getSchemaWithName() + " differ");
 					reportTableDifferances(h);
 				}
 			}
@@ -46,27 +48,60 @@ public class Main {
 	}
 
 	private void reportTableDifferances(Header h) {
-		reprotTableDetails(transmart.lookUpTableDetails(h));
-		reprotTableDetails(i2b2.lookUpTableDetails(h));
-	}
-
-	private void reprotTableDetails(TableDetails details) {
-		System.out.println("Table Detais: " + details.name);
-		for (String columnName: details.getColumnNames()){
-			TableColumn column = details.getColumn(columnName);
-			System.out.println("  " + column.name + ": " + column.type + "(" + column.remainder + ")");
+		TableDetails tableFromTransmart = transmart.lookUpTableDetails(h);
+		TableDetails tableFromI2b2 = i2b2.lookUpTableDetails(h);
+		if (tableFromTransmart == null) {
+			System.out.println("    The table details in transmart reported null - probably an error");
+			return;
+		}
+		if (tableFromI2b2 == null) {
+			System.out.println("    The table details in i2b2 reported null - probably an error");
+			return;
+		}
+//		System.out.println("    transmart: " + tableFromTransmart);
+//		System.out.println("    i2b2:      " + tableFromI2b2);		
+		Set<String> columnNamesInTransmart = tableFromTransmart.getColumnNames();
+		Set<String> columnNamesInI2b2 = tableFromI2b2.getColumnNames();
+		Set<String> combinedNames = new HashSet<String>();
+		combinedNames.addAll(columnNamesInTransmart);
+		combinedNames.addAll(columnNamesInI2b2);
+		for (String name: combinedNames) {
+			TableColumn ct = tableFromTransmart.getColumn(name);
+			TableColumn ci = tableFromI2b2.getColumn(name);
+//			System.out.println("      in transmart: " + ct);
+//			System.out.println("      in i2b2:      " + ci);
+			if (ct == null) System.out.println("      there is no column in the transmart table: " + name); 
+			else if (ci == null) System.out.println("      there is no column in the i2b2 table: " + name);
+			else if (!ct.type.equals(ci.type)) {
+				System.out.println("      the columns differ in type for: " +  name);
+				System.out.println("        in transmart " + ct.type);
+				System.out.println("        in i2b2      " + ci.type);
+			}
+			else {
+//				System.out.println("      there is no differance in column names and types");
+			}
+					
 		}
 	}
 
 	private boolean tableStructureCongruent(Header h) {
 		TableDetails tableFromTransmart = transmart.lookUpTableDetails(h);
 		TableDetails tableFromI2b2 = i2b2.lookUpTableDetails(h);
-		System.out.println(tableFromTransmart);
-		System.out.println(tableFromI2b2);
 		if ((tableFromTransmart == null) && (tableFromI2b2 == null)) return true;
 		if (tableFromTransmart == null) return false;
 		if (tableFromI2b2 == null) return false;
-		return false;
+		Set<String> columnNamesInTransmart = tableFromTransmart.getColumnNames();
+		Set<String> columnNamesInI2b2 = tableFromI2b2.getColumnNames();
+		for (String n: columnNamesInTransmart) {
+			if (!columnNamesInI2b2.contains(n)) return false;
+			String type1 = tableFromTransmart.getColumn(n).type;
+			String type2 = tableFromI2b2.getColumn(n).type;
+			if (!type1.equals(type2)) return false;
+		}
+		for (String n: columnNamesInI2b2) {
+			if (!columnNamesInTransmart.contains(n)) return false;
+		}
+		return true;
 	}
 
 	private Database buildTransmart() throws IOException {

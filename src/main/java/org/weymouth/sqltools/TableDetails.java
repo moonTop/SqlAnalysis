@@ -31,6 +31,6 @@ public class TableDetails {
 			if (list == null) list = s;
 			else list += ',' + s;
 		}
-		return "Table(" + columnMap.keySet().size() + "): [" + list + "]";
+		return "Table(" + name + "): [" + list + "]";
 	}
 }

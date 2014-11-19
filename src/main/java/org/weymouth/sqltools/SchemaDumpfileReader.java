@@ -13,7 +13,8 @@ import java.util.Map;
 public class SchemaDumpfileReader {
 	
 	private static final String HEADER_PREFIX = "-- Name: ";
-	private static final String TABLE_START = "CREATE TABLE";
+	private static final String TABLE_START1 = "CREATE TABLE";
+	private static final String TABLE_START2 = "CREATE UNLOGGED TABLE";
 	private static final String TABLE_END = ");";
 	private final String filename;
 	private File in = null;
@@ -37,10 +38,8 @@ public class SchemaDumpfileReader {
 			headers.add(header);
 			if (header.type == HeaderType.TABLE) {
 				TableDetails details = getTableDetails(header);
-				System.out.println(header);
-				System.out.println(details);
 				if (details != null) {
-					tableMap.put(details.name,details);
+					tableMap.put(header.getSchemaWithName(),details);
 				}
 			}
 		}
@@ -102,32 +101,48 @@ public class SchemaDumpfileReader {
 
 	private TableColumn makeColumnFromLine(String line) throws IOException {
 		if (line.contains(TABLE_END)) return null;
-		String[] words = line.trim().split("");
+		String[] words = line.trim().split(" ");
 		if (words.length < 2) {
 			throw new IOException("malformed table column line: " + line);
 		}
 		int index = 0;
-		String name = words[index++];
-		String type = words[index++];
-		if (type.contentEquals("character"))
+		String name = cleanIt(words[index++]);
+		String type = cleanIt(words[index++]);
+		if (type.contentEquals("character")) {
 			if (words.length < 3) {
 				throw new IOException("malformed table column line: " + line);
 			}
-			type += words[index++];
+			type += " " + cleanIt(words[index++]);
+		}
 		String rest = "";
 		while (index < words.length) {
-			if (rest.isEmpty()) rest += words[index];
-			else rest += " " + words[index];
+			if (rest.isEmpty()) rest += cleanIt(words[index]);
+			else rest += " " + cleanIt(words[index]);
 			rest = rest.trim();
 			index++;
 		}
 		return new TableColumn(name,type,rest);
 	}
 
+	private String cleanIt(String string) {
+		String ret = string.trim();
+		if (ret.endsWith(",")) {
+			ret = ret.replace(",","");
+		}
+		return ret;
+	}
+
 //	CREATE TABLE am_data_uid (
 	private String tableNameFromTableStart(String line) {
-		int pos = line.indexOf(TABLE_START);
-		pos += TABLE_START.length();
+		int pos = 0;
+		if (line.contains(TABLE_START1)) {
+			pos = line.indexOf(TABLE_START1);
+			pos += TABLE_START1.length();
+		}
+		if (line.contains(TABLE_START2)) {
+			pos = line.indexOf(TABLE_START2);
+			pos += TABLE_START2.length();
+		}
 		while (line.charAt(pos) == ' ') pos++;
 		int end = line.indexOf(' ', pos);
 		String name = line.substring(pos, end).trim();
@@ -135,7 +150,8 @@ public class SchemaDumpfileReader {
 	}
 
 	private boolean isTableStart(String line) {
-		if (line.contains(TABLE_START)) return true;
+		if (line.contains(TABLE_START1)) return true;
+		if (line.contains(TABLE_START2)) return true;
 		return false;
 	}
 
@@ -154,7 +170,9 @@ public class SchemaDumpfileReader {
 	}
 
 	private String readLineFromInput() throws IOException {
-		return reader.readLine();
+		String line = reader.readLine();
+//		System.out.println(line);
+		return line;
 	}
 
 	private boolean isOpen() {
