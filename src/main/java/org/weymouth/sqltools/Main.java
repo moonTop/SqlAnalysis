@@ -6,7 +6,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class Main {
-	
+
+	private static final DatabaseType DATABASE_TYPE = DatabaseType.POSTGRESQL;
+	private static final String DATABASE_NAME_TRANSMART = "transmart";
+	private static final String DATABASE_NAME_I2B2 = "i2b2";
+	private static final String FILE_FOR_TRANSMART_POSTGRES = "src/main/resources/postgres-transmart-schema.sql";
+	private static final String FILE_FOR_I2B2_POSTGRES = "src/main/resources/postgres-i2b2-schema.sql";
+	private static final String FILE_FOR_TRANSMART_ORACLE = "src/main/resources/oracle_tm_schema.sql";
+	private static final String FILE_FOR_I2B2_ORACLE = "src/main/resources/oracle_i2b2_pm_meta_demo.sql";
+
 	private Database transmart;
 	private Database i2b2;
 	
@@ -105,15 +113,26 @@ public class Main {
 	}
 
 	private Database buildTransmart() throws IOException {
-		return buildFromDump("transmart", "src/main/resources/oracle_tm_schema.sql");
+		switch (DATABASE_TYPE) {
+			case POSTGRESQL:
+				return buildFromDump(DATABASE_NAME_TRANSMART, new SchemaDumpfileReaderPostgres(FILE_FOR_TRANSMART_POSTGRES));
+			case ORACLE:
+				return buildFromDump(DATABASE_NAME_TRANSMART, new SchemaDumpfileReaderOracle(FILE_FOR_TRANSMART_ORACLE));
+		}
+		return null;
 	}
 	
 	private Database buildI2b2() throws IOException {
-		return buildFromDump("i2b2", "src/main/resources/oracle_i2b2_pm_meta_demo.sql");
+		switch (DATABASE_TYPE) {
+			case POSTGRESQL:
+				return buildFromDump(DATABASE_NAME_I2B2, new SchemaDumpfileReaderPostgres(FILE_FOR_I2B2_POSTGRES));
+			case ORACLE:
+				return buildFromDump(DATABASE_NAME_I2B2, new SchemaDumpfileReaderOracle(FILE_FOR_I2B2_ORACLE));
+		}
+		return null;
 	}
 
-	private Database buildFromDump(String name, String path) throws IOException {
-		SchemaDumpfileReader reader = new SchemaDumpfileReaderPostgres(path);
+	private Database buildFromDump(String name,SchemaDumpfileReader reader) throws IOException {
 		Database db = reader.buildDatabaseDescription(name);
 		return db;
 	}
