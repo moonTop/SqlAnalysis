@@ -105,11 +105,11 @@ public class Main {
 	}
 
 	private Database buildTransmart() throws IOException {
-		return buildFromDump("transmart", "src/main/resources/transmart-schema.sql");
+		return buildFromDump("transmart", "src/main/resources/postgres-transmart-schema.sql");
 	}
 	
 	private Database buildI2b2() throws IOException {
-		return buildFromDump("i2b2", "src/main/resources/i2b2-schema.sql");
+		return buildFromDump("i2b2", "src/main/resources/postgres-i2b2-schema.sql");
 	}
 
 	private Database buildFromDump(String name, String path) throws IOException {
