@@ -105,15 +105,15 @@ public class Main {
 	}
 
 	private Database buildTransmart() throws IOException {
-		return buildFromDump("transmart", "src/main/resources/postgres-transmart-schema.sql");
+		return buildFromDump("transmart", "src/main/resources/oracle_tm_schema.sql");
 	}
 	
 	private Database buildI2b2() throws IOException {
-		return buildFromDump("i2b2", "src/main/resources/postgres-i2b2-schema.sql");
+		return buildFromDump("i2b2", "src/main/resources/oracle_i2b2_pm_meta_demo.sql");
 	}
 
 	private Database buildFromDump(String name, String path) throws IOException {
-		SchemaDumpfileReader reader = new SchemaDumpfileReader(path);
+		SchemaDumpfileReader reader = new SchemaDumpfileReaderPostgres(path);
 		Database db = reader.buildDatabaseDescription(name);
 		return db;
 	}
