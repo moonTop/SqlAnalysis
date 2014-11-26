@@ -7,8 +7,8 @@ import java.util.Set;
 
 public class Main {
 
-//	private static final DatabaseType DATABASE_TYPE = DatabaseType.POSTGRESQL;
-	private static final DatabaseType DATABASE_TYPE = DatabaseType.ORACLE;
+	private static final DatabaseType DATABASE_TYPE = DatabaseType.POSTGRESQL;
+//	private static final DatabaseType DATABASE_TYPE = DatabaseType.ORACLE;
 	private static final String DATABASE_NAME_TRANSMART = "transmart";
 	private static final String DATABASE_NAME_I2B2 = "i2b2";
 	private static final String FILE_FOR_TRANSMART_POSTGRES = "src/main/resources/postgres-transmart-schema.sql";
@@ -34,14 +34,41 @@ public class Main {
 	}
 	
 	private void printReport() {
+		System.out.println("In transmart - ");
+		printReportTypeSizeList(transmart);
+		System.out.println("In i2b2 - ");
+		printReportTypeSizeList(i2b2);
 		Set<String> commonSchemas = intersectionOfSchemaSets();
 		System.out.println("Common functions: ");
 		for (String schema: commonSchemas){
-			Set<Header> commonTables = intersectionHeadersByName(schema,HeaderType.FUNCTION); 
-			for (Header h: commonTables) {
+			Set<Header> commonFunctions = intersectionHeadersByName(schema,HeaderType.FUNCTION); 
+			for (Header h: commonFunctions) {
 				System.out.println("  " + h.getSchemaWithName());
 			}
 		}
+		System.out.println("Common procedures: ");
+		for (String schema: commonSchemas){
+			Set<Header> commonProcedures = intersectionHeadersByName(schema,HeaderType.PROCEDURE); 
+			for (Header h: commonProcedures) {
+				System.out.println("  " + h.getSchemaWithName());
+			}
+		}
+		System.out.println("Common views: ");
+		for (String schema: commonSchemas){
+			Set<Header> commonViews = intersectionHeadersByName(schema,HeaderType.VIEW); 
+			for (Header h: commonViews) {
+				System.out.println("  " + h.getSchemaWithName());
+			}
+		}
+		
+		System.out.println("Common synonymns: ");
+		for (String schema: commonSchemas){
+			Set<Header> commonSynonymns = intersectionHeadersByName(schema,HeaderType.SYNONYMN); 
+			for (Header h: commonSynonymns) {
+				System.out.println("  " + h.getSchemaWithName());
+			}
+		}
+
 		System.out.println("Common Tables: ");
 		for (String schema: commonSchemas){
 			Set<Header> commonTables = intersectionHeadersByName(schema,HeaderType.TABLE); 
@@ -53,7 +80,13 @@ public class Main {
 					reportTableDifferances(h);
 				}
 			}
-		}		
+		}
+	}
+
+	private void printReportTypeSizeList(Database db) {
+		for (String schema: db.schemaSet()) {
+			System.out.println("  " + schema + " -- " + db.typeCount(schema));
+		}
 	}
 
 	private void reportTableDifferances(Header h) {

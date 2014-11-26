@@ -1,5 +1,7 @@
 package org.weymouth.sqltools;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,21 @@ public class Database {
 	
 	public TableDetails lookUpTableDetails(Header h) {
 		return tableMap.get(h.getSchemaWithName());
+	}
+	
+	public String typeCount(String schema) {
+		Map<HeaderType,Map<String,Header>> headersByType = headersBySchemaAndType.get(schema);
+		String ret = null;
+		Set<HeaderType> keys = headersByType.keySet();
+		List<HeaderType> keyList = new ArrayList<HeaderType>(keys);
+		Collections.sort(keyList);
+		for (HeaderType key: keyList) {
+			Map<String,Header> nameMap = getHeaderMapBySchemaAndType(schema,key);
+			String count = "" + key + ":" + nameMap.keySet().size();
+			if (ret == null) ret = count;
+			else ret += ", " + count;
+		}
+		return ret;
 	}
 
 	private void addHeader(Header h) {
