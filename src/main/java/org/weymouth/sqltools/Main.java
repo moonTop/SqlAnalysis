@@ -7,8 +7,8 @@ import java.util.Set;
 
 public class Main {
 
-	private static final DatabaseType DATABASE_TYPE = DatabaseType.POSTGRESQL;
-//	private static final DatabaseType DATABASE_TYPE = DatabaseType.ORACLE;
+//	private static final DatabaseType DATABASE_TYPE = DatabaseType.POSTGRESQL;
+	private static final DatabaseType DATABASE_TYPE = DatabaseType.ORACLE;
 	private static final String DATABASE_NAME_TRANSMART = "transmart";
 	private static final String DATABASE_NAME_I2B2 = "i2b2";
 	private static final String FILE_FOR_TRANSMART_POSTGRES = "src/main/resources/postgres-transmart-schema.sql";
@@ -34,6 +34,7 @@ public class Main {
 	}
 	
 	private void printReport() {
+		System.out.println("Database type is " + DATABASE_TYPE);
 		System.out.println("In transmart - ");
 		printReportTypeSizeList(transmart);
 		System.out.println("In i2b2 - ");
