@@ -41,8 +41,9 @@ public class Database {
 	private void addHeader(Header h) {
 		// for the time being, we only care able tables and functions
 		if (!tableOrFunction(h)) return;
-		String schema = h.schema;
-		HeaderType type = h.type;
+		String schema = h.getSchema();
+		HeaderType type = h.getType();
+		String name = h.getName();
 		Map<HeaderType,Map<String,Header>> headersByType = headersBySchemaAndType.get(schema);
 		if (headersByType == null) {
 			headersByType = new HashMap<HeaderType,Map<String,Header>>();
@@ -53,17 +54,17 @@ public class Database {
 			nameMap = new HashMap<String,Header>();
 			headersByType.put(type, nameMap);
 		}
-		Header probe = nameMap.get(h.name);
+		Header probe = nameMap.get(name);
 		if (probe != null){
-			System.out.println("Name collission: " + probe + " collides with " + h);
+			System.out.println("Name collision: " + probe + " collides with " + h);
 		} else {
-			nameMap.put(h.name,h);
+			nameMap.put(name,h);
 		}
 	}
 	
 	private boolean tableOrFunction(Header h) {
-		if (h.type.equals(HeaderType.TABLE)) return true;
-		if (h.type.equals(HeaderType.FUNCTION)) return true;
+		if (h.getType().equals(HeaderType.TABLE)) return true;
+		if (h.getType().equals(HeaderType.FUNCTION)) return true;
 		return false;
 	}
 	

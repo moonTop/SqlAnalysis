@@ -12,10 +12,6 @@ import java.util.Map;
 
 public abstract class SchemaDumpfileReader {
 	
-	private static final String TABLE_START1 = "CREATE TABLE";
-	private static final String TABLE_START2 = "CREATE UNLOGGED TABLE";
-	private static final String TABLE_END = ");";
-
 	private String filename;
 	private File in = null;
 	private BufferedReader reader = null;
@@ -31,12 +27,22 @@ public abstract class SchemaDumpfileReader {
 		return new Database(name,headers,tableMap);
 	}	
 
+	abstract boolean isHeaderLine(String line);
+	abstract Header readHeaderFromInput(String line);
+	abstract boolean isTableStart(String line);
+	abstract boolean confirmTableEnd(String line);
+	abstract String tableNameFromTableStart(String line);
+	abstract TableColumn makeColumnFromLine(String line) throws IOException;
+	abstract boolean shouldSkipTableLine(String line);
+	abstract void updateSchemaIfNeeded(Header header, TableDetails details);
+	
+
 	private void readAll() throws IOException {
 		openReader();
 		Header header = null;
 		while ((header = scanToNextHeader()) != null){
 			headers.add(header);
-			if (header.type == HeaderType.TABLE) {
+			if (header.getType() == HeaderType.TABLE) {
 				TableDetails details = getTableDetails(header);
 				if (details != null) {
 					tableMap.put(header.getSchemaWithName(),details);
@@ -57,7 +63,7 @@ public abstract class SchemaDumpfileReader {
 		if (!isOpen()) throw new IOException("File not open for input: " + filename);
 		String line = null;
 		while ((line = readLineFromInput()) != null) {
-			if (firstLineOfHeader(line)) {
+			if (isHeaderLine(line)) {
 				return readHeaderFromInput(line);
 			}
 		}
@@ -73,106 +79,35 @@ public abstract class SchemaDumpfileReader {
 	private TableDetails getTableDetails(Header header) throws IOException {
 		String line;
 		boolean readingTable = false;
-		TableDetails ret = new TableDetails(header.name);
+		TableDetails ret = new TableDetails(header.getName());
 		while ((line = readLineFromInput()) != null){
 			if (readingTable) {
+				if (shouldSkipTableLine(line)) {
+					continue;
+				}
 				TableColumn c = makeColumnFromLine(line);
 				if (c != null) {
 					ret.addColumn(c);
 				} else {
-					if (confirmTableEnd(line))
-						return ret;
+					if (confirmTableEnd(line)){
+						updateSchemaIfNeeded(header, ret);
+						if (header.getSchema() == null) {
+							System.out.println("Null schema in header: " + header);
+							System.out.println(header.getText());
+						}
+						return ret;						
+					}
 					else {
 						throw new IOException("Badlyformed table or other parsing problems: " + header.getSchemaWithName());
 					}
 				}
 			} else if (isTableStart(line)) {
 				String name = tableNameFromTableStart(line);
-				if (!ret.name.equals(name)) return null;
+				if (!ret.getName().equals(name)) return null;
 				readingTable = true;
 			}
 		}
 		return null;
-	}
-
-//    am_data_id bigint NOT NULL,
-//    unique_id character varying(300) NOT NULL,
-//    am_data_type character varying(100) NOT NULL
-
-	private TableColumn makeColumnFromLine(String line) throws IOException {
-		if (line.contains(TABLE_END)) return null;
-		String[] words = line.trim().split(" ");
-		if (words.length < 2) {
-			throw new IOException("malformed table column line: " + line);
-		}
-		int index = 0;
-		String name = cleanIt(words[index++]);
-		String type = cleanIt(words[index++]);
-		if (type.contentEquals("character")) {
-			if (words.length < 3) {
-				throw new IOException("malformed table column line: " + line);
-			}
-			type += " " + cleanIt(words[index++]);
-		}
-		String rest = "";
-		while (index < words.length) {
-			if (rest.isEmpty()) rest += cleanIt(words[index]);
-			else rest += " " + cleanIt(words[index]);
-			rest = rest.trim();
-			index++;
-		}
-		return new TableColumn(name,type,rest);
-	}
-
-	private String cleanIt(String string) {
-		String ret = string.trim();
-		if (ret.endsWith(",")) {
-			ret = ret.replace(",","");
-		}
-		return ret;
-	}
-
-//	CREATE TABLE am_data_uid (
-	private String tableNameFromTableStart(String line) {
-		int pos = 0;
-		if (line.contains(TABLE_START1)) {
-			pos = line.indexOf(TABLE_START1);
-			pos += TABLE_START1.length();
-		}
-		if (line.contains(TABLE_START2)) {
-			pos = line.indexOf(TABLE_START2);
-			pos += TABLE_START2.length();
-		}
-		while (line.charAt(pos) == ' ') pos++;
-		int end = line.indexOf(' ', pos);
-		String name = line.substring(pos, end).trim();
-		return name;
-	}
-
-	private boolean isTableStart(String line) {
-		if (line.contains(TABLE_START1)) return true;
-		if (line.contains(TABLE_START2)) return true;
-		return false;
-	}
-
-	private boolean confirmTableEnd(String line) {
-		if (line.contains(TABLE_END)) return true;
-		return false;
-	}
-
-	abstract boolean firstLineOfHeader(String line);
-	abstract Header readHeaderFromInput(String line);
-
-	String nullIfEmpty(String s) {
-		if (s.isEmpty()) return null;
-		if (s.equals("-")) return null;
-		return s;
-	}
-
-	private String readLineFromInput() throws IOException {
-		String line = reader.readLine();
-//		System.out.println(line);
-		return line;
 	}
 
 	private boolean isOpen() {
@@ -185,5 +120,27 @@ public abstract class SchemaDumpfileReader {
 		in = new File(filename);
 		reader = new BufferedReader(new FileReader(in));
 	}
+
+	// utilities used by subclasses
 	
+	String readLineFromInput() throws IOException {
+		String line = reader.readLine();
+//		System.out.println(line);
+		return line;
+	}
+
+	String cleanIt(String string) {
+		String ret = string.trim();
+		if (ret.endsWith(",")) {
+			ret = ret.replace(",","");
+		}
+		return ret;
+	}
+
+	String nullIfEmpty(String s) {
+		if (s.isEmpty()) return null;
+		if (s.equals("-")) return null;
+		return s;
+	}
+
 }

@@ -4,11 +4,11 @@ public class Header {
 
 	//-- Name: i2b2demodata; Type: SCHEMA; Schema: -; Owner: weymouth
 	
-	final String text;
-	final String name;
-	final HeaderType type;
-	final String schema;
-	final String owner;
+	final private String text;
+	final private String name;
+	final private HeaderType type;
+	private String schema;
+	private String owner;
 	
 	public Header(String text, String name, HeaderType type, String schema,
 			String owner) {
@@ -19,6 +19,34 @@ public class Header {
 		this.owner = owner;
 	}
 	
+	public String getSchema() {
+		return schema;
+	}
+
+	public void setSchema(String schema) {
+		this.schema = schema;
+	}
+
+	public String getOwner() {
+		return owner;
+	}
+
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public HeaderType getType() {
+		return type;
+	}
+
 	public String getSchemaWithName() {
 		return schema + "." + name;
 	}

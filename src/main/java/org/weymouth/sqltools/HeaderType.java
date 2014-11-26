@@ -6,7 +6,13 @@ public enum HeaderType {
 	SEQUENCE("SEQUENCE"),TABLE("TABLE"),SCHEMA("SCHEMA"), COMMENT("COMMENT"),
 	AGGREGATE("AGGREGATE"), VIEW("VIEW"), TRIGGER("TRIGGER"),
 	CONSTRAINT("CONSTRAINT"), ACL("ACL"), DEFAULT_ACL("DEFAULT ACL"),EXTENSION("EXTENSION"), 
-	FK_CONSTRAINT("FK CONSTRAINT"), DEFAULT("DEFAULT"),UNDEFINED("UNDEFINED");
+	FK_CONSTRAINT("FK CONSTRAINT"), 
+	
+	// additions for Oracle
+	SYNONYMN("SYNONYMN"),PROCEDURE("PROCEDURE"),TYPE("TYPE"),QUEUE("QUEUE"),QUEUE_TABLE("QUEUE TABLE"),
+	PACKAGE("PACKAGE"),PACKAGE_BODY("PACKAGE BODY"),
+	
+	DEFAULT("DEFAULT"),UNDEFINED("UNDEFINED");
 
 	private final String printString;
 	
@@ -16,6 +22,7 @@ public enum HeaderType {
 	
 	public static HeaderType headerTypeFromString(String probe) {
 		if (probe == null) return null;
+		probe = probe.toUpperCase();
 		for (HeaderType type: HeaderType.values()) {
 			if (probe.equals(type.printString)) return type;
 		}

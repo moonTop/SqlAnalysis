@@ -6,13 +6,26 @@ import java.util.Set;
 
 public class TableDetails {
 	
-	final String name;
+	private final String name;
+	private String schema;
 	private Map<String,TableColumn> columnMap = new HashMap<String,TableColumn>();
 
 	public TableDetails(String name) {
 		this.name = name;
 	}
 	
+	public String getSchema() {
+		return schema;
+	}
+
+	public void setSchema(String schema) {
+		this.schema = schema;
+	}
+
+	public String getName() {
+		return name;
+	}
+
 	public void addColumn(TableColumn column) {
 		columnMap.put(column.name, column);
 	}
