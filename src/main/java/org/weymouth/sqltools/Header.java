@@ -10,25 +10,17 @@ public class Header {
 	final String schema;
 	final String owner;
 	
-	public Header(String line) {
-		String probe = line.substring("-- ".length()).trim();
-		if (probe.endsWith(":")) probe += " ";
-		text = probe;
-		String[] parts = text.split("; ");
-		name = nullIfEmpty(parts[0].split(":")[1].trim());
-		type = HeaderType.headerTypeFromString(nullIfEmpty(parts[1].split(":")[1].trim()));
-		schema = nullIfEmpty(parts[2].split(":")[1].trim());
-		owner = nullIfEmpty(parts[3].split(":")[1].trim());
+	public Header(String text, String name, HeaderType type, String schema,
+			String owner) {
+		this.text = text;
+		this.name = name;
+		this.type = type;
+		this.schema = schema;
+		this.owner = owner;
 	}
 	
 	public String getSchemaWithName() {
 		return schema + "." + name;
-	}
-
-	private String nullIfEmpty(String s) {
-		if (s.isEmpty()) return null;
-		if (s.equals("-")) return null;
-		return s;
 	}
 
 	@Override

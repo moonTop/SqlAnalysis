@@ -11,11 +11,11 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class SchemaDumpfileReader {
-
-	private static final String HEADER_PREFIX = "-- Name: ";
+	
 	private static final String TABLE_START1 = "CREATE TABLE";
 	private static final String TABLE_START2 = "CREATE UNLOGGED TABLE";
 	private static final String TABLE_END = ");";
+
 	private String filename;
 	private File in = null;
 	private BufferedReader reader = null;
@@ -160,13 +160,13 @@ public abstract class SchemaDumpfileReader {
 		return false;
 	}
 
-	private Header readHeaderFromInput(String line) {
-		Header ret = new Header(line);
-		return ret;
-	}
+	abstract boolean firstLineOfHeader(String line);
+	abstract Header readHeaderFromInput(String line);
 
-	private boolean firstLineOfHeader(String line) {
-		return line.startsWith(HEADER_PREFIX);
+	String nullIfEmpty(String s) {
+		if (s.isEmpty()) return null;
+		if (s.equals("-")) return null;
+		return s;
 	}
 
 	private String readLineFromInput() throws IOException {
